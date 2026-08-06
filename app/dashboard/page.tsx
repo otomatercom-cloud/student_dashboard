@@ -9,6 +9,7 @@ import { WeeklyChart } from "@/components/WeeklyChart";
 import { TaskList } from "@/components/TaskList";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { QuizList } from "@/components/QuizList";
+import { ActivityList } from "@/components/ActivityList";
 import { DoubtsPanel } from "@/components/DoubtsPanel";
 
 export default function DashboardPage() {
@@ -229,6 +230,13 @@ export default function DashboardPage() {
           </div>
           {syncMsg && <div className="text-xs text-logic-muted mb-2">{syncMsg}</div>}
           <QuizList quizzes={data.quizzes} />
+        </Section>
+      )}
+
+      {/* Course Activities */}
+      {data.activities.length > 0 && (
+        <Section title="📚 Course Activities">
+          <ActivityList activities={data.activities} />
         </Section>
       )}
 

@@ -54,6 +54,7 @@ export interface DashboardData {
     id: number;
     name: string;
     type: string;
+    section: string;
     due_date: string;
     moodle_url: string;
     is_complete: boolean;
