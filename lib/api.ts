@@ -95,4 +95,10 @@ export function createDoubt(vals: { description: string; priority?: string; subj
   });
 }
 
+export function getQuizAttendUrl(quizResultId: number) {
+  return request<{ url: string }>(`/api/student/quiz/${quizResultId}/attend-url`, {
+    method: "GET",
+  });
+}
+
 export { ApiError };

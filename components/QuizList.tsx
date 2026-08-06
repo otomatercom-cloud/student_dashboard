@@ -1,7 +1,30 @@
+"use client";
+
+import { useState } from "react";
 import type { DashboardData } from "@/lib/types";
+import { getQuizAttendUrl } from "@/lib/api";
 
 export function QuizList({ quizzes }: { quizzes: DashboardData["quizzes"] }) {
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+
   if (!quizzes.length) return null;
+
+  async function handleAttend(quizId: number) {
+    // Open the tab synchronously, in direct response to the click —
+    // browsers block window.open() calls made after an await, since
+    // it's no longer considered a direct user gesture at that point.
+    // Navigate the already-open tab once the real URL comes back.
+    const tab = window.open("", "_blank");
+    setLoadingId(quizId);
+    try {
+      const { url } = await getQuizAttendUrl(quizId);
+      if (tab) tab.location.href = url;
+    } catch {
+      if (tab) tab.close();
+    } finally {
+      setLoadingId(null);
+    }
+  }
 
   return (
     <table className="w-full text-sm">
@@ -33,14 +56,13 @@ export function QuizList({ quizzes }: { quizzes: DashboardData["quizzes"] }) {
             </td>
             <td className="py-2 text-right">
               {q.moodle_url && (
-                <a
-                  href={q.moodle_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs font-semibold text-logic-greenLight"
+                <button
+                  onClick={() => handleAttend(q.id)}
+                  disabled={loadingId === q.id}
+                  className="text-xs font-semibold text-logic-greenLight disabled:opacity-50"
                 >
-                  {q.has_attempted ? "↻ Review" : "▶ Attend Quiz"}
-                </a>
+                  {loadingId === q.id ? "Opening…" : q.has_attempted ? "↻ Review" : "▶ Attend Quiz"}
+                </button>
               )}
             </td>
           </tr>
