@@ -101,4 +101,11 @@ export function getQuizAttendUrl(quizResultId: number) {
   });
 }
 
+export function syncMyQuizzes() {
+  return request<{ quizzes?: unknown[]; error?: string; retry_after_seconds?: number }>(
+    "/api/student/quizzes/sync",
+    { method: "POST" }
+  );
+}
+
 export { ApiError };

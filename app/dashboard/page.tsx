@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, getDashboard, toggleTask, clearToken, ApiError } from "@/lib/api";
+import { getToken, getDashboard, toggleTask, clearToken, syncMyQuizzes, ApiError } from "@/lib/api";
 import type { DashboardData, DashboardTask } from "@/lib/types";
 import { StatCard } from "@/components/StatCard";
 import { WeeklyChart } from "@/components/WeeklyChart";
@@ -17,6 +17,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTask, setActiveTask] = useState<DashboardTask | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,6 +67,26 @@ export default function DashboardPage() {
   function handleLogout() {
     clearToken();
     router.replace("/login");
+  }
+
+  async function handleSyncQuizzes() {
+    setSyncing(true);
+    setSyncMsg("Checking Moodle for your latest scores…");
+    try {
+      const result = await syncMyQuizzes();
+      if (result.error === "too_soon") {
+        setSyncMsg(`Please wait ${result.retry_after_seconds}s before refreshing again.`);
+      } else if (result.error) {
+        setSyncMsg("Could not refresh scores right now — try again shortly.");
+      } else {
+        setSyncMsg("Updated!");
+        load();
+      }
+    } catch {
+      setSyncMsg("Could not refresh scores right now — try again shortly.");
+    } finally {
+      setSyncing(false);
+    }
   }
 
   if (loading && !data) {
@@ -195,6 +217,17 @@ export default function DashboardPage() {
       {/* Quizzes */}
       {data.quizzes.length > 0 && (
         <Section title="📝 Quizzes">
+          <div className="flex items-center justify-between mb-3">
+            <div />
+            <button
+              onClick={handleSyncQuizzes}
+              disabled={syncing}
+              className="text-xs font-semibold border border-logic-border rounded-lg px-3 py-1.5 disabled:opacity-60"
+            >
+              {syncing ? "Refreshing…" : "🔄 Refresh Scores"}
+            </button>
+          </div>
+          {syncMsg && <div className="text-xs text-logic-muted mb-2">{syncMsg}</div>}
           <QuizList quizzes={data.quizzes} />
         </Section>
       )}
